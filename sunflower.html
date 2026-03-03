@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sunflower</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg,
+        #0d1f3c 0%,
+        #1a4a7a 10%,
+        #2e7db5 24%,
+        #6ab8e8 40%,
+        #b8ddf5 52%,
+        #f5d88a 63%,
+        #f0a040 73%,
+        #c06820 83%,
+        #7a3e10 92%,
+        #3d1e05 100%
+      );
+    }
+
+    /* ── Sun ─────────────────────────────── */
+    .sun {
+      position: absolute;
+      width: 76px; height: 76px;
+      top: 8vh; right: 11vw;
+      border-radius: 50%;
+      background: radial-gradient(circle at 36% 34%,
+        #fffef0 0%, #ffe566 28%, #ffa500 65%, #ff6800 100%
+      );
+      box-shadow:
+        0 0 0 10px rgba(255,230,80,0.18),
+        0 0 50px 20px rgba(255,210,60,0.38),
+        0 0 110px 50px rgba(255,160,0,0.18);
+    }
+
+    /* ── Clouds ──────────────────────────── */
+    .cloud {
+      position: absolute;
+      background: rgba(255,255,255,0.82);
+      border-radius: 50px;
+      filter: blur(2px);
+    }
+
+    /* ── Meadow ──────────────────────────── */
+    .meadow {
+      position: absolute;
+      bottom: 0; left: -6%;
+      width: 112%; height: 28%;
+      background: linear-gradient(180deg,
+        #52b040 0%, #3c8a2e 35%, #285c1e 75%, #163610 100%
+      );
+      border-radius: 70% 70% 0 0;
+    }
+
+    /* Grass fringe on top of meadow */
+    .grass-fringe {
+      position: absolute;
+      bottom: 27.5%; left: 0;
+      width: 100%; height: 30px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .grass-fringe::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 30px;
+      background: repeating-linear-gradient(
+        90deg,
+        #5ecf4a 0px, #5ecf4a 3px,
+        #3ca82a 3px, #3ca82a 6px,
+        #70d85c 6px, #70d85c 9px,
+        #48b836 9px, #48b836 12px
+      );
+      clip-path: polygon(
+        0 100%, 1% 10%, 2% 100%, 3.5% 0%, 5% 100%,
+        6.5% 20%, 8% 100%, 9% 5%, 10.5% 100%, 12% 25%,
+        13.5% 100%, 15% 0%, 16.5% 100%, 18% 15%, 19.5% 100%,
+        21% 8%, 22.5% 100%, 24% 30%, 25.5% 100%, 27% 0%,
+        28.5% 100%, 30% 18%, 31.5% 100%, 33% 5%, 34.5% 100%,
+        36% 22%, 37.5% 100%, 39% 10%, 40.5% 100%, 42% 28%,
+        43.5% 100%, 45% 2%, 46.5% 100%, 48% 18%, 49.5% 100%,
+        51% 8%, 52.5% 100%, 54% 24%, 55.5% 100%, 57% 0%,
+        58.5% 100%, 60% 14%, 61.5% 100%, 63% 6%, 64.5% 100%,
+        66% 20%, 67.5% 100%, 69% 4%, 70.5% 100%, 72% 26%,
+        73.5% 100%, 75% 10%, 76.5% 100%, 78% 2%, 79.5% 100%,
+        81% 18%, 82.5% 100%, 84% 8%, 85.5% 100%, 87% 22%,
+        88.5% 100%, 90% 5%, 91.5% 100%, 93% 16%, 94.5% 100%,
+        96% 0%, 97.5% 100%, 99% 12%, 100% 100%
+      );
+    }
+
+    /* ── Wind sway wrapper ───────────────── */
+    .flower-wrap {
+      position: absolute;
+      bottom: 27%;
+      left: 50%;
+      transform: translateX(-50%);
+      transform-origin: bottom center;
+      animation: windSway 2.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+    }
+
+    @keyframes windSway {
+      0%   { transform: translateX(-50%) rotate(-4.5deg); }
+      22%  { transform: translateX(-50%) rotate(3deg);    }
+      45%  { transform: translateX(-50%) rotate(-1.8deg); }
+      68%  { transform: translateX(-50%) rotate(4deg);    }
+      85%  { transform: translateX(-50%) rotate(-2deg);   }
+      100% { transform: translateX(-50%) rotate(-4.5deg); }
+    }
+
+    /* ── Flower head SVG ─────────────────── */
+    .flower-head-svg {
+      display: block;
+      width: 210px; height: 210px;
+      margin: 0 auto;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.28));
+    }
+
+    /* ── Stem + leaves SVG ───────────────── */
+    .stem-svg {
+      display: block;
+      width: 72px; height: 190px;
+      margin: 0 auto;
+    }
+
+    /* ── Mini falling flowers ────────────── */
+    @keyframes fall {
+      0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+      15%  { opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) rotate(var(--dr)) scale(0.25); opacity: 0; }
+    }
+
+    .mini-f {
+      position: fixed;
+      pointer-events: none;
+      z-index: 999;
+      will-change: transform, opacity;
+      animation: fall var(--dur) cubic-bezier(0.3, 0.0, 0.8, 1) forwards;
+    }
+
+    /* ── Hint label ──────────────────────── */
+    .hint {
+      position: absolute;
+      bottom: 5vh; left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.55);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      text-align: center;
+      pointer-events: none;
+      animation: pulse 2.8s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.85} }
+  </style>
+</head>
+<body>
+
+  <div class="sun"></div>
+
+  <div class="cloud" style="top:7%;left:4%;width:110px;height:34px;"></div>
+  <div class="cloud" style="top:13%;left:60%;width:85px;height:28px;opacity:.6;"></div>
+  <div class="cloud" style="top:5%;left:38%;width:64px;height:22px;opacity:.45;"></div>
+
+  <div class="meadow"></div>
+  <div class="grass-fringe"></div>
+
+  <div class="flower-wrap" id="mainFlower">
+
+    <svg class="flower-head-svg" id="flowerSvg"
+         viewBox="0 0 210 210" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="pg" cx="50%" cy="5%" r="95%" fx="50%" fy="5%">
+          <stop offset="0%"   stop-color="#FFF176"/>
+          <stop offset="35%"  stop-color="#FFD700"/>
+          <stop offset="75%"  stop-color="#E8900A"/>
+          <stop offset="100%" stop-color="#B35A00"/>
+        </radialGradient>
+        <radialGradient id="pig" cx="50%" cy="5%" r="95%">
+          <stop offset="0%"   stop-color="#FFE066"/>
+          <stop offset="60%"  stop-color="#CC7700"/>
+          <stop offset="100%" stop-color="#8B4500"/>
+        </radialGradient>
+        <radialGradient id="dg" cx="36%" cy="33%" r="72%">
+          <stop offset="0%"   stop-color="#9a6030"/>
+          <stop offset="30%"  stop-color="#6a3510"/>
+          <stop offset="65%"  stop-color="#3d1e05"/>
+          <stop offset="100%" stop-color="#1a0800"/>
+        </radialGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <g id="outerPetals"></g>
+      <g id="innerPetals"></g>
+
+      <circle cx="105" cy="105" r="48" fill="url(#dg)" filter="url(#glow)"/>
+      <g id="seeds"></g>
+      <ellipse cx="92" cy="91" rx="14" ry="9"
+               fill="rgba(255,220,150,0.12)" transform="rotate(-25 92 91)"/>
+    </svg>
+
+    <svg class="stem-svg" viewBox="0 0 72 190" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#163a14"/>
+          <stop offset="30%"  stop-color="#357a2e"/>
+          <stop offset="50%"  stop-color="#4caf50"/>
+          <stop offset="70%"  stop-color="#357a2e"/>
+          <stop offset="100%" stop-color="#163a14"/>
+        </linearGradient>
+        <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#1e5a1a"/>
+          <stop offset="50%"  stop-color="#56b84a"/>
+          <stop offset="100%" stop-color="#1e5a1a"/>
+        </linearGradient>
+      </defs>
+      <rect x="30" y="0" width="12" height="190" rx="6" fill="url(#sg)"/>
+      <path d="M30 58 Q-8 42 0 16 Q26 32 30 58Z" fill="url(#lg)"/>
+      <path d="M30 58 Q12 40 4 18" stroke="#163a14" stroke-width="1" fill="none" opacity="0.45"/>
+      <path d="M42 122 Q84 106 76 78 Q52 96 42 122Z" fill="url(#lg)"/>
+      <path d="M42 122 Q64 108 72 82" stroke="#163a14" stroke-width="1" fill="none" opacity="0.45"/>
+    </svg>
+  </div>
+
+  <div class="hint">tap anywhere to bloom ✦</div>
+
+<script>
+  const CX = 105, CY = 105;
+  const GA = 137.508 * (Math.PI / 180);
+
+  /* outer petals */
+  const outerG = document.getElementById('outerPetals');
+  for (let i = 0; i < 18; i++) {
+    const a = i * (360 / 18);
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    el.setAttribute('cx', CX);
+    el.setAttribute('cy', CY - 70);
+    el.setAttribute('rx', '14');
+    el.setAttribute('ry', '34');
+    el.setAttribute('fill', 'url(#pg)');
+    el.setAttribute('transform', `rotate(${a} ${CX} ${CY})`);
+    outerG.appendChild(el);
+  }
+
+  /* inner petals */
+  const innerG = document.getElementById('innerPetals');
+  for (let i = 0; i < 18; i++) {
+    const a = i * (360 / 18) + 10;
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    el.setAttribute('cx', CX);
+    el.setAttribute('cy', CY - 56);
+    el.setAttribute('rx', '10');
+    el.setAttribute('ry', '24');
+    el.setAttribute('fill', 'url(#pig)');
+    el.setAttribute('transform', `rotate(${a} ${CX} ${CY})`);
+    el.setAttribute('opacity', '0.72');
+    innerG.appendChild(el);
+  }
+
+  /* fibonacci seeds */
+  const seedsG = document.getElementById('seeds');
+  for (let i = 0; i < 80; i++) {
+    const r = 3.6 * Math.sqrt(i);
+    if (r > 43) continue;
+    const theta = i * GA;
+    const x = (CX + r * Math.cos(theta)).toFixed(2);
+    const y = (CY + r * Math.sin(theta)).toFixed(2);
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', x);
+    c.setAttribute('cy', y);
+    c.setAttribute('r', '2');
+    c.setAttribute('fill', '#1a0800');
+    c.setAttribute('opacity', '0.88');
+    seedsG.appendChild(c);
+  }
+
+  /* tap interaction */
+  let busy = false;
+  function onTap(ox, oy) {
+    if (busy) return;
+    busy = true;
+    setTimeout(() => { busy = false; }, 180);
+    for (let i = 0; i < 24; i++) {
+      setTimeout(() => spawnMini(ox, oy), i * 55 + Math.random() * 25);
+    }
+  }
+
+  document.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    onTap(t.clientX, t.clientY);
+  }, { passive: false });
+
+  document.addEventListener('click', e => onTap(e.clientX, e.clientY));
+
+  function spawnMini(ox, oy) {
+    const size = 16 + Math.random() * 28;
+    const div = document.createElement('div');
+    div.className = 'mini-f';
+
+    div.style.left   = (ox + (Math.random() - 0.5) * 110) + 'px';
+    div.style.top    = oy + 'px';
+    div.style.width  = size + 'px';
+    div.style.height = size + 'px';
+
+    const dur = 1.6 + Math.random() * 2.4;
+    div.style.setProperty('--dx',  ((Math.random() - 0.5) * 280) + 'px');
+    div.style.setProperty('--dy',  (window.innerHeight - oy + 80)  + 'px');
+    div.style.setProperty('--dr',  ((Math.random() - 0.5) * 900)  + 'deg');
+    div.style.setProperty('--dur', dur + 's');
+
+    div.innerHTML = miniSVG(size);
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), (dur + 0.3) * 1000);
+  }
+
+  function miniSVG(s) {
+    let p = '';
+    for (let i = 0; i < 12; i++)
+      p += `<ellipse cx="50" cy="17" rx="8" ry="18" fill="#FFD700" transform="rotate(${i*30} 50 50)" opacity="0.95"/>`;
+    for (let i = 0; i < 12; i++)
+      p += `<ellipse cx="50" cy="22" rx="5.5" ry="13" fill="#FFA500" transform="rotate(${i*30+15} 50 50)" opacity="0.8"/>`;
+
+    let seeds = '';
+    for (let i = 0; i < 28; i++) {
+      const r = 3 * Math.sqrt(i);
+      if (r > 16) continue;
+      const theta = i * GA;
+      seeds += `<circle cx="${(50 + r*Math.cos(theta)).toFixed(1)}" cy="${(50 + r*Math.sin(theta)).toFixed(1)}" r="1.7" fill="#1a0800" opacity="0.85"/>`;
+    }
+
+    return `<svg width="${s}" height="${s}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      ${p}
+      <circle cx="50" cy="50" r="21" fill="#5a2d0a"/>
+      <circle cx="50" cy="50" r="17" fill="#7a4010"/>
+      ${seeds}
+    </svg>`;
+  }
+</script>
+</body>
+</html>
