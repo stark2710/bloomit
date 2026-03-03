@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sunflower</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none; -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    body {
+      position: fixed; inset: 0;
+      transition: background 4s ease;
+    }
+
+    /* ── Celestial (sun or moon) ── */
+    #celestial {
+      position: absolute;
+      pointer-events: none;
+      transition: left 55s linear, top 55s linear, opacity 2s ease;
+      z-index: 2;
+    }
+
+    /* ── Stars ── */
+    #stars {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 68%;
+      pointer-events: none; z-index: 1;
+      opacity: 0; transition: opacity 3s ease;
+    }
+
+    /* ── Clouds ── */
+    .cloud {
+      position: absolute;
+      pointer-events: none;
+      transition: opacity 3s ease; z-index: 2;
+    }
+    @keyframes cf1 { 0%,100%{transform:translateX(0)} 50%{transform:translateX(22px)} }
+    @keyframes cf2 { 0%,100%{transform:translateX(0)} 50%{transform:translateX(-16px)} }
+    @keyframes cf3 { 0%,100%{transform:translateX(0)} 50%{transform:translateX(12px)} }
+    #c1 { animation: cf1 30s ease-in-out infinite; }
+    #c2 { animation: cf2 24s ease-in-out infinite 4s; }
+    #c3 { animation: cf3 38s ease-in-out infinite 10s; }
+
+    /* ── Horizon glow ── */
+    #horizonGlow {
+      position: absolute; bottom: 26%; left: 0;
+      width: 100%; height: 240px;
+      pointer-events: none; z-index: 2;
+      transition: background 4s ease, opacity 3s ease;
+    }
+
+    /* ── Milky Way ── */
+    #milkyWay {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 68%;
+      pointer-events: none; z-index: 1;
+      opacity: 0; transition: opacity 5s ease;
+    }
+
+    /* ── Distant hills ── */
+    .hills {
+      position: absolute; bottom: 27.5%; left: -5%;
+      width: 110%; height: 13%;
+      background: linear-gradient(180deg,
+        transparent 0%, rgba(30,60,22,0.55) 55%, rgba(22,48,16,0.80) 100%);
+      border-radius: 70% 55% 0 0 / 100% 100% 0 0;
+      z-index: 2;
+    }
+    .hills::before {
+      content: ''; position: absolute;
+      right: -2%; bottom: 0; width: 55%; height: 80%;
+      background: linear-gradient(180deg,
+        transparent 0%, rgba(28,55,20,0.50) 55%, rgba(20,44,14,0.75) 100%);
+      border-radius: 80% 65% 0 0 / 100% 100% 0 0;
+    }
+
+    /* ── Meadow ── */
+    .meadow {
+      position: absolute; bottom: 0; left: -6%;
+      width: 112%; height: 28%;
+      background: linear-gradient(180deg,
+        #58b844 0%, #44962e 28%, #306820 58%, #1e4812 80%, #112a0a 100%);
+      border-radius: 70% 70% 0 0; z-index: 3;
+    }
+
+    /* ── Grass fringe ── */
+    .grass-fringe {
+      position: absolute; bottom: 27.5%; left: 0;
+      width: 100%; height: 30px;
+      overflow: hidden; pointer-events: none; z-index: 4;
+    }
+    .grass-fringe::before {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      width: 100%; height: 30px;
+      background: repeating-linear-gradient(90deg,
+        #5ecf4a 0px,#5ecf4a 3px,#3ca82a 3px,#3ca82a 6px,
+        #70d85c 6px,#70d85c 9px,#48b836 9px,#48b836 12px);
+      clip-path: polygon(
+        0 100%,1% 10%,2% 100%,3.5% 0%,5% 100%,6.5% 20%,8% 100%,9% 5%,10.5% 100%,12% 25%,
+        13.5% 100%,15% 0%,16.5% 100%,18% 15%,19.5% 100%,21% 8%,22.5% 100%,24% 30%,
+        25.5% 100%,27% 0%,28.5% 100%,30% 18%,31.5% 100%,33% 5%,34.5% 100%,36% 22%,
+        37.5% 100%,39% 10%,40.5% 100%,42% 28%,43.5% 100%,45% 2%,46.5% 100%,48% 18%,
+        49.5% 100%,51% 8%,52.5% 100%,54% 24%,55.5% 100%,57% 0%,58.5% 100%,60% 14%,
+        61.5% 100%,63% 6%,64.5% 100%,66% 20%,67.5% 100%,69% 4%,70.5% 100%,72% 26%,
+        73.5% 100%,75% 10%,76.5% 100%,78% 2%,79.5% 100%,81% 18%,82.5% 100%,84% 8%,
+        85.5% 100%,87% 22%,88.5% 100%,90% 5%,91.5% 100%,93% 16%,94.5% 100%,
+        96% 0%,97.5% 100%,99% 12%,100% 100%);
+    }
+
+    /* ── Flower ── */
+    .flower-wrap {
+      position: absolute; bottom: 27%; left: 50%;
+      transform: translateX(-50%); transform-origin: bottom center;
+      animation: windSway 2.6s cubic-bezier(0.45,0.05,0.55,0.95) infinite;
+      z-index: 5;
+    }
+    @keyframes windSway {
+      0%  {transform:translateX(-50%) rotate(-4.5deg)}
+      22% {transform:translateX(-50%) rotate(3deg)}
+      45% {transform:translateX(-50%) rotate(-1.8deg)}
+      68% {transform:translateX(-50%) rotate(4deg)}
+      85% {transform:translateX(-50%) rotate(-2deg)}
+      100%{transform:translateX(-50%) rotate(-4.5deg)}
+    }
+    /* Sunflower with transparent background */
+    .sf-photo {
+      display: block;
+      width: 320px;
+      height: 320px;
+      filter: drop-shadow(0 12px 28px rgba(0,0,0,0.30));
+    }
+
+    /* ── Mini shower ── */
+    @keyframes fall {
+      0%  {transform:translate(0,0) rotate(0deg) scale(1);opacity:1}
+      15% {opacity:1}
+      100%{transform:translate(var(--dx),var(--dy)) rotate(var(--dr)) scale(0.25);opacity:0}
+    }
+    .mini-f {
+      position: fixed; pointer-events: none; z-index: 999;
+      will-change: transform,opacity;
+      animation: fall var(--dur) cubic-bezier(0.3,0,0.8,1) forwards;
+    }
+
+    /* ── Hint ── */
+    .hint {
+      position: absolute; bottom: 5vh; left: 50%; transform: translateX(-50%);
+      color: rgba(255,255,255,0.55); font-size: 13px; letter-spacing: .12em;
+      font-family: -apple-system,BlinkMacSystemFont,sans-serif;
+      text-align: center; pointer-events: none; z-index: 6;
+      animation: pulse 2.8s ease-in-out infinite;
+    }
+    @keyframes pulse{0%,100%{opacity:.3}50%{opacity:.85}}
+  </style>
+</head>
+<body>
+
+  <div id="stars"></div>
+  <div id="celestial"></div>
+
+  <!-- Volumetric SVG clouds -->
+  <svg id="c1" class="cloud" style="top:7%;left:2%;" width="230" height="82" viewBox="0 0 230 82" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="cf1f" x="-6%" y="-25%" width="115%" height="160%">
+        <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="rgba(0,20,80,0.13)"/>
+      </filter>
+      <linearGradient id="cg1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.97)"/>
+        <stop offset="100%" stop-color="rgba(210,225,248,0.82)"/>
+      </linearGradient>
+    </defs>
+    <g fill="url(#cg1)" filter="url(#cf1f)">
+      <ellipse cx="58" cy="62" rx="54" ry="28"/>
+      <ellipse cx="102" cy="45" rx="52" ry="40"/>
+      <ellipse cx="154" cy="54" rx="48" ry="30"/>
+      <ellipse cx="198" cy="63" rx="32" ry="22"/>
+      <ellipse cx="126" cy="36" rx="34" ry="26"/>
+    </g>
+  </svg>
+
+  <svg id="c2" class="cloud" style="top:12%;left:57%;opacity:0.88;" width="178" height="68" viewBox="0 0 178 68" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="cf2f" x="-6%" y="-25%" width="115%" height="160%">
+        <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="rgba(0,20,80,0.11)"/>
+      </filter>
+      <linearGradient id="cg2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.94)"/>
+        <stop offset="100%" stop-color="rgba(215,228,252,0.78)"/>
+      </linearGradient>
+    </defs>
+    <g fill="url(#cg2)" filter="url(#cf2f)">
+      <ellipse cx="46" cy="52" rx="44" ry="24"/>
+      <ellipse cx="86" cy="37" rx="44" ry="32"/>
+      <ellipse cx="134" cy="48" rx="40" ry="24"/>
+      <ellipse cx="163" cy="56" rx="24" ry="16"/>
+    </g>
+  </svg>
+
+  <svg id="c3" class="cloud" style="top:5%;left:35%;opacity:0.58;" width="138" height="52" viewBox="0 0 138 52" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="cf3f" x="-6%" y="-25%" width="115%" height="160%">
+        <feGaussianBlur stdDeviation="1.5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <linearGradient id="cg3" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.90)"/>
+        <stop offset="100%" stop-color="rgba(222,234,255,0.72)"/>
+      </linearGradient>
+    </defs>
+    <g fill="url(#cg3)" filter="url(#cf3f)">
+      <ellipse cx="32" cy="40" rx="30" ry="16"/>
+      <ellipse cx="64" cy="28" rx="34" ry="24"/>
+      <ellipse cx="100" cy="36" rx="30" ry="18"/>
+      <ellipse cx="122" cy="42" rx="20" ry="13"/>
+    </g>
+  </svg>
+
+  <!-- Horizon glow (positioned near sun/moon) -->
+  <div id="horizonGlow"></div>
+
+  <!-- Milky Way (night only) -->
+  <div id="milkyWay">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="mwf"><feGaussianBlur stdDeviation="14"/></filter>
+        <linearGradient id="mwg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="rgba(180,195,255,0)"/>
+          <stop offset="30%"  stop-color="rgba(190,205,255,0.06)"/>
+          <stop offset="50%"  stop-color="rgba(205,215,255,0.11)"/>
+          <stop offset="70%"  stop-color="rgba(190,205,255,0.06)"/>
+          <stop offset="100%" stop-color="rgba(180,195,255,0)"/>
+        </linearGradient>
+      </defs>
+      <rect x="-20%" y="5%" width="140%" height="65%"
+            fill="url(#mwg)" transform="rotate(-28 50% 50%)" filter="url(#mwf)"/>
+    </svg>
+  </div>
+
+  <!-- Distant rolling hills -->
+  <div class="hills"></div>
+
+  <div class="meadow"></div>
+  <div class="grass-fringe"></div>
+
+  <div class="flower-wrap" id="mainFlower">
+    <img class="sf-photo" src="sunflower-photo.webp" alt="sunflower"/>
+  </div>
+
+  <div class="hint">tap anywhere to bloom ✦</div>
+
+<script>
+/* ══════════════════════════════════════════
+   SKY SYSTEM — time-based sun/moon/stars/bg
+══════════════════════════════════════════ */
+
+// Sky gradient states keyed by hour (0-23)
+// Each entry: [top, upper, mid-upper, mid, mid-lower, lower, bottom]
+const SKY = [
+  // 0h deep night
+  { h:0,  g:'linear-gradient(180deg,#000206 0%,#010408 14%,#030918 30%,#040b1e 50%,#040918 68%,#060808 84%,#050606 100%)' },
+  // 4h pre-dawn chill
+  { h:4,  g:'linear-gradient(180deg,#000206 0%,#030816 10%,#0a1428 24%,#12122a 42%,#200e28 58%,#2a1018 74%,#140a0c 90%,#0a0808 100%)' },
+  // 5h pre-dawn warm
+  { h:5,  g:'linear-gradient(180deg,#010308 0%,#070c1c 10%,#0e1630 22%,#1a1432 36%,#2e1230 50%,#421428 62%,#320e14 76%,#1c0a0a 90%,#0c0808 100%)' },
+  // 6h sunrise burst
+  { h:6,  g:'linear-gradient(180deg,#0b0e22 0%,#181c40 8%,#30204e 16%,#622a50 26%,#c03840 38%,#e86030 50%,#f09030 62%,#e87828 74%,#a04c10 86%,#4a2208 94%,#2a1406 100%)' },
+  // 7h early glow
+  { h:7,  g:'linear-gradient(180deg,#0a1428 0%,#144e90 10%,#2278c0 22%,#50a8e0 36%,#88caf5 50%,#c0e2fa 60%,#f0e8c8 68%,#f0c050 76%,#c87820 86%,#5a3010 95%,#2a1408 100%)' },
+  // 9h morning blue
+  { h:9,  g:'linear-gradient(180deg,#081630 0%,#1252a0 10%,#2488d0 24%,#58b8f0 40%,#94d4fc 54%,#c8eaff 64%,#e8f4ff 72%,#fef0d0 78%,#e8a838 84%,#3d1e05 100%)' },
+  // 12h noon vivid
+  { h:12, g:'linear-gradient(180deg,#060e28 0%,#0e54b0 10%,#2290dc 24%,#54bcf5 40%,#8ed4fc 54%,#c2ecff 64%,#def6ff 72%,#f5f0e8 78%,#3d1e05 100%)' },
+  // 15h afternoon
+  { h:15, g:'linear-gradient(180deg,#091630 0%,#184c90 10%,#2c84c8 24%,#5cb4e8 40%,#a8d4f0 54%,#d8eef8 62%,#f0e8d0 70%,#e8c060 78%,#c07820 86%,#3d1e05 100%)' },
+  // 17h golden hour
+  { h:17, g:'linear-gradient(180deg,#08101e 0%,#141e38 8%,#203050 18%,#3a6090 30%,#d8b060 44%,#f0c038 56%,#f09820 66%,#d06c18 76%,#903c0e 88%,#3d1e05 100%)' },
+  // 18h sunset fire
+  { h:18, g:'linear-gradient(180deg,#060810 0%,#0e1020 8%,#1a1028 18%,#3c1a20 28%,#b02c18 40%,#e04c18 52%,#f07018 62%,#c85010 74%,#7a2c0a 88%,#3a1206 100%)' },
+  // 19h dusk fade
+  { h:19, g:'linear-gradient(180deg,#030508 0%,#06080e 10%,#0a081e 20%,#120a1e 32%,#1a0c18 46%,#140a0e 60%,#0e0808 76%,#080606 92%,#060504 100%)' },
+  // 21h settled night
+  { h:21, g:'linear-gradient(180deg,#000206 0%,#010408 14%,#030918 30%,#040b1e 50%,#040918 68%,#060808 84%,#050606 100%)' },
+];
+
+function getSkyGradient(h) {
+  // find surrounding keyframes
+  for (let i = SKY.length - 1; i >= 0; i--) {
+    if (h >= SKY[i].h) {
+      const next = SKY[(i + 1) % SKY.length];
+      const a = SKY[i], b = next;
+      // just snap to nearest (CSS transition handles smooth)
+      const mid = a.h + (((b.h - a.h) + 24) % 24) / 2;
+      const hNorm = ((h - a.h) + 24) % 24;
+      const span  = ((b.h - a.h) + 24) % 24;
+      return hNorm < span / 2 ? a.g : b.g;
+    }
+  }
+  return SKY[0].g;
+}
+
+function updateSky() {
+  const now = new Date();
+  const h   = now.getHours() + now.getMinutes() / 60;
+  const W   = window.innerWidth,  H = window.innerHeight;
+  const horizonY = H * 0.72;
+  const arcRX    = W * 0.40,  arcRY = H * 0.52;
+  const cX       = W / 2;
+
+  const RISE = 6, SET = 18;
+  const isDay = h >= RISE && h <= SET;
+
+  // ── background ──────────────────────────
+  document.body.style.background = getSkyGradient(h);
+
+  // ── clouds: fade out at night ────────────
+  const cloudOp = (h >= 5.5 && h <= 19) ? 1 : 0;
+  ['c1','c2','c3'].forEach(id => {
+    document.getElementById(id).style.opacity = cloudOp;
+  });
+
+  const cel    = document.getElementById('celestial');
+  const stEl   = document.getElementById('stars');
+  const glowEl = document.getElementById('horizonGlow');
+  const mwEl   = document.getElementById('milkyWay');
+
+  if (isDay) {
+    // sun arc: left (6am) → top (noon) → right (6pm)
+    const t     = (h - RISE) / (SET - RISE);
+    const angle = Math.PI * (1 - t);
+    const sx    = cX + arcRX * Math.cos(angle);
+    const sy    = horizonY - arcRY * Math.sin(angle);
+
+    cel.style.left    = (sx - 38) + 'px';
+    cel.style.top     = (sy - 38) + 'px';
+    cel.style.opacity = '1';
+    cel.innerHTML     = sunHTML();
+
+    stEl.style.opacity = '0';
+    mwEl.style.opacity = '0';
+
+    // Horizon glow — brightest near dawn/dusk, warm orange
+    const nearHorizon = Math.pow(1 - Math.abs(2 * t - 1), 2.5);
+    const gAlpha = (0.28 * nearHorizon + 0.04).toFixed(2);
+    const gColor = t < 0.5 ? `255,148,48` : `255,110,38`;
+    const sx_p   = (sx / W * 100).toFixed(1);
+    glowEl.style.background =
+      `radial-gradient(ellipse 58% 220px at ${sx_p}% 100%, rgba(${gColor},${gAlpha}) 0%, transparent 72%)`;
+
+  } else {
+    // moon arc: right (6pm) → top (midnight) → left (6am)
+    const nightSpan = (24 - SET) + RISE;
+    const nt    = h >= SET ? (h - SET) / nightSpan : (h + 24 - SET) / nightSpan;
+    const angle = Math.PI * nt;
+    const mx    = cX + arcRX * Math.cos(angle);
+    const my    = horizonY - arcRY * Math.sin(angle);
+
+    cel.style.left    = (mx - 40) + 'px';
+    cel.style.top     = (my - 40) + 'px';
+    cel.style.opacity = '1';
+    cel.innerHTML     = moonHTML();
+
+    if (!stEl.dataset.built) {
+      stEl.innerHTML     = buildStars(W, H * 0.65);
+      stEl.dataset.built = '1';
+    }
+    stEl.style.opacity = '1';
+
+    // Milky Way — visible deep night
+    mwEl.style.opacity = (h > 21 || h < 4) ? '1' : '0.5';
+
+    // Soft moonlit glow on horizon
+    const mx_p = (mx / W * 100).toFixed(1);
+    glowEl.style.background =
+      `radial-gradient(ellipse 42% 170px at ${mx_p}% 100%, rgba(170,195,240,0.08) 0%, transparent 70%)`;
+  }
+
+  if (isDay) stEl.dataset.built = '';
+}
+
+function sunHTML() {
+  return `<div style="width:76px;height:76px;border-radius:50%;
+    background:radial-gradient(circle at 36% 34%,
+      #fffef0 0%,#ffe566 28%,#ffa500 65%,#ff6800 100%);
+    box-shadow:0 0 0 10px rgba(255,230,80,0.18),
+               0 0 50px 20px rgba(255,210,60,0.38),
+               0 0 110px 50px rgba(255,160,0,0.18);"></div>`;
+}
+
+function moonHTML() {
+  return `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="mg"><feGaussianBlur stdDeviation="3" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <mask id="cm">
+        <rect width="80" height="80" fill="white"/>
+        <circle cx="52" cy="34" r="26" fill="black"/>
+      </mask>
+    </defs>
+    <!-- soft halo -->
+    <circle cx="36" cy="40" r="32" fill="rgba(210,210,180,0.10)" filter="url(#mg)"/>
+    <!-- crescent body -->
+    <circle cx="36" cy="40" r="28" fill="#e8e4cc" mask="url(#cm)" filter="url(#mg)"/>
+    <!-- craters -->
+    <circle cx="27" cy="36" r="3.5" fill="rgba(150,145,125,0.45)" mask="url(#cm)"/>
+    <circle cx="38" cy="51" r="2.5" fill="rgba(150,145,125,0.35)" mask="url(#cm)"/>
+    <circle cx="23" cy="49" r="2"   fill="rgba(150,145,125,0.30)" mask="url(#cm)"/>
+    <circle cx="32" cy="26" r="2"   fill="rgba(150,145,125,0.30)" mask="url(#cm)"/>
+  </svg>`;
+}
+
+function buildStars(W, maxY) {
+  let s = `<svg width="${W}" height="${maxY}" xmlns="http://www.w3.org/2000/svg">`;
+  for (let i = 0; i < 90; i++) {
+    const x   = (Math.random() * W).toFixed(1);
+    const y   = (Math.random() * maxY).toFixed(1);
+    const r   = (0.5 + Math.random() * 1.6).toFixed(1);
+    const op  = (0.4 + Math.random() * 0.6).toFixed(2);
+    const dur = (2 + Math.random() * 4).toFixed(1);
+    s += `<circle cx="${x}" cy="${y}" r="${r}" fill="white" opacity="${op}">
+      <animate attributeName="opacity"
+        values="${op};${(op*0.25).toFixed(2)};${op}"
+        dur="${dur}s" repeatCount="indefinite"/>
+    </circle>`;
+  }
+  return s + '</svg>';
+}
+
+// run now + every 30 s
+updateSky();
+setInterval(updateSky, 30000);
+
+
+/* ══════════════════════════════════════════
+   TAP SHOWER
+══════════════════════════════════════════ */
+const GA = 137.508 * (Math.PI / 180);
+let busy = false;
+function onTap(ox, oy) {
+  if (busy) return;
+  busy = true;
+  setTimeout(() => { busy = false; }, 180);
+  for (let i = 0; i < 24; i++)
+    setTimeout(() => spawnMini(ox, oy), i*55 + Math.random()*25);
+}
+
+document.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.touches[0]; onTap(t.clientX, t.clientY);
+}, { passive: false });
+document.addEventListener('click', e => onTap(e.clientX, e.clientY));
+
+function spawnMini(ox, oy) {
+  const size = 16 + Math.random() * 28;
+  const div  = document.createElement('div');
+  div.className = 'mini-f';
+  div.style.left   = (ox + (Math.random()-0.5)*110) + 'px';
+  div.style.top    = oy + 'px';
+  div.style.width  = size + 'px';
+  div.style.height = size + 'px';
+  const dur = 1.6 + Math.random() * 2.4;
+  div.style.setProperty('--dx',  ((Math.random()-0.5)*280) + 'px');
+  div.style.setProperty('--dy',  (window.innerHeight - oy + 80) + 'px');
+  div.style.setProperty('--dr',  ((Math.random()-0.5)*900) + 'deg');
+  div.style.setProperty('--dur', dur + 's');
+  div.innerHTML = miniSVG(size);
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), (dur+0.3)*1000);
+}
+
+function miniSVG(s) {
+  const mPetal = (len,bw,hw) => `M -${bw} 0 C -${hw} -${(len*.22).toFixed(1)}, -${(hw*.94).toFixed(1)} -${(len*.54).toFixed(1)}, 0 -${len} C ${(hw*.94).toFixed(1)} -${(len*.54).toFixed(1)}, ${hw} -${(len*.22).toFixed(1)}, ${bw} 0 Z`;
+  let p = '';
+  for (let i=0;i<14;i++) p+=`<g transform="translate(50 50) rotate(${i*(360/14)})"><path d="${mPetal(38,3.5,10)}" fill="#FFD700" opacity="0.95"/></g>`;
+  for (let i=0;i<14;i++) p+=`<g transform="translate(50 50) rotate(${i*(360/14)+(360/28)})"><path d="${mPetal(28,2.5,7.5)}" fill="#E89500" opacity="0.85"/></g>`;
+  let seeds = '';
+  for (let i=0;i<35;i++){
+    const r=2.8*Math.sqrt(i); if(r>16) continue;
+    const theta=i*GA;
+    seeds+=`<ellipse cx="${(50+r*Math.cos(theta)).toFixed(1)}" cy="${(50+r*Math.sin(theta)).toFixed(1)}" rx="1.5" ry="2" fill="#060200" opacity="0.9"/>`;
+  }
+  return `<svg width="${s}" height="${s}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    ${p}<circle cx="50" cy="50" r="21" fill="#5a2d0a"/><circle cx="50" cy="50" r="17" fill="#7a4010"/>${seeds}
+  </svg>`;
+}
+</script>
+</body>
+</html>
